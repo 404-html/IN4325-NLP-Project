@@ -14,7 +14,11 @@ print("-------------")
 print("Length of class data: " + str(len(y)))
 print(y)
 
-m = svm.SVC(gamma='auto')
+# C defines how much misclassification is allowed, low C = more misclassification and
+# high C = less misclassification on test data. Be aware, high C will overfit
+#
+# Large Gamma would be too accurate and will overfit
+m = svm.SVC(C=1.0, gamma='auto')
 
 # If there are more than 2 classes in y, SVC will use one-vs-all by default
 m.fit(X, y)
