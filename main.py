@@ -2,10 +2,12 @@ from sklearn import datasets
 
 from sklearn import svm
 
+import pandas as pd
+
+print("---------START Iris dataset SVM example---------")
 X, y = datasets.load_iris(return_X_y=True)
 
 # X containing feature values of data
-print("Iris dataset with features:")
 print("Sepal length; Sepal Width; Petal Length; Petal Width")
 print("Number of documents: " + str(len(X)))
 print(X)
@@ -27,3 +29,9 @@ m.fit(X, y)
 print("Score: " + str(m.score(X, y)))
 # Classes 0, 1 and 2
 print("Different classes: " + str(m.classes_))
+print("---------END Iris dataset SVM example---------\n")
+
+print("---------START Scale dataset CSV example---------")
+print("Example of data from scaledata:\n")
+df = pd.read_csv("data.csv", sep="|", names=["id", "class", "content"])
+print(df.head())
