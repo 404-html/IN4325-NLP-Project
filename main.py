@@ -1,37 +1,58 @@
-from sklearn import datasets
-
-from sklearn import svm
+import csv
+import io
+import os
+from pathlib import Path
 
 import pandas as pd
+from sklearn import svm
+from sklearn.feature_extraction.text import CountVectorizer
 
-print("---------START Iris dataset SVM example---------")
-X, y = datasets.load_iris(return_X_y=True)
+author_name = "Dennis+Schwartz"
 
-# X containing feature values of data
-print("Sepal length; Sepal Width; Petal Length; Petal Width")
-print("Number of documents: " + str(len(X)))
-print(X)
-print("-------------")
-# y containing classes of the previous data in order
-print("Length of class data: " + str(len(y)))
-print(y)
 
-# C defines how much misclassification is allowed, low C = more misclassification and
-# high C = less misclassification on test data. Be aware, high C will overfit
-#
-# Large Gamma would be too accurate and will overfit
+def create_csv_for(author, delimiter):
+    base_path = Path(__file__).parent
+    target_dir = (base_path / "data/scaledata/" / author).resolve()
+    column_names = ["id", "class", "content"]
+    with io.open("data.csv", 'w', newline='') as fh_csv, \
+            open(os.path.join(target_dir, "id." + author)) as fh1, \
+            open(os.path.join(target_dir, "label.3class." + author)) as fh2, \
+            open(os.path.join(target_dir, "subj." + author)) as fh3:
+
+        writer = csv.writer(fh_csv, delimiter=delimiter)
+        writer.writerow(column_names)
+
+        while True:
+            out = []
+            for fh in [fh1, fh2, fh3]:
+                out.append(fh.readline().strip('\n'))
+
+            if all(out):
+                writer.writerow(out)
+            else:
+                break
+
+
+create_csv_for(author_name, "|")
+
+print("Read scaledata from data.csv file:\n")
+df = pd.read_csv("data.csv", sep="|", header=0)
+print("Dataframe: ")
+print(df.head())
+
+my_vocabulary = ["?"]
+vectorizer = CountVectorizer(binary=True, vocabulary=my_vocabulary,
+                             token_pattern=r"(?u)\b\w\w+\b|\?")
+X = vectorizer.transform(df['content'].tolist())
+y = df['class'].values
+print(str(y))
+
+print("Feature array: ")
+print(X.toarray())
+
 m = svm.SVC(C=1.0, gamma='auto')
 
-# If there are more than 2 classes in y, SVC will use one-vs-all by default
 m.fit(X, y)
-# Returns the mean accuracy on the given test data and labels. Using same train
-# and test data right now (should be avoided).
 print("Score: " + str(m.score(X, y)))
 # Classes 0, 1 and 2
 print("Different classes: " + str(m.classes_))
-print("---------END Iris dataset SVM example---------\n")
-
-print("---------START Scale dataset CSV example---------")
-print("Example of data from scaledata:\n")
-df = pd.read_csv("data.csv", sep="|", names=["id", "class", "content"])
-print(df.head())
