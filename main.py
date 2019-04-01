@@ -10,7 +10,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 author_name = "Dennis+Schwartz"
 
 
-def create_csv_for(author, delimiter):
+def create_csv_for(author, delimiter="|"):
     base_path = Path(__file__).parent
     target_dir = (base_path / "data/scaledata/" / author).resolve()
     column_names = ["id", "class", "content"]
