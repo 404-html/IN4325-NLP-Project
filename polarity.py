@@ -41,4 +41,5 @@ blob = TextBlob(text, analyzer=NaiveBayesAnalyzer())
 for sentence in blob.sentences:
     print("Sentiment probabilities (pos/neg): " + str(sentence.sentiment.p_pos) + "/" + str(sentence.sentiment.p_neg))
 
+print("Whole text sentiment(pos/neg: " + str(blob.sentiment.p_pos) + "/" + str(blob.sentiment.p_neg))
 
