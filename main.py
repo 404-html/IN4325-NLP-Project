@@ -1,15 +1,16 @@
 import csv
 import io
 import os
+import re
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from sklearn import svm
+from bs4 import BeautifulSoup
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
-from textblob import Blobber
-from textblob.sentiments import NaiveBayesAnalyzer
 
 author_name = "Dennis+Schwartz"
 
@@ -37,65 +38,105 @@ def create_csv_for(author, delimiter="|"):
                 break
 
 
-create_csv_for(author_name, "|")
+# Uncomment to create data.csv for author each time
+# create_csv_for(author_name, "|")
 
-print("Read scaledata from data.csv file:\n")
-df = pd.read_csv("data.csv", sep="|", header=0)
-print("Dataframe: ")
-print(df.head())
+# Create dataframe from data.csv
+data = pd.read_csv("data.csv", sep="|", header=0)
+# print(data.head())
 
+from nltk.stem import WordNetLemmatizer
+
+lemmatizer = WordNetLemmatizer()
+
+
+def clean_sentences(data):
+    reviews = []
+
+    for sent in data['content']:
+        # remove html content
+        review_text = BeautifulSoup(sent, "lxml").get_text()
+
+        # remove non-alphabetic characters
+        review_text = re.sub("[^a-zA-Z?]", " ", review_text)
+
+        # tokenize the sentences
+        words = word_tokenize(review_text.lower())
+
+        # lemmatize each word to its lemma
+        lemma_words = [lemmatizer.lemmatize(i) for i in words if
+                       not i in set(stopwords.words('english'))]
+        lemma_string = " ".join(lemma_words)
+        reviews.append(lemma_string)
+
+    return reviews
+
+
+sentences = clean_sentences(data)
+y = data.iloc[:, 1].values
+# Split training data
+data_train, data_test, labels_train, labels_test = train_test_split(sentences, y,
+                                                                    test_size=0.20,
+                                                                    random_state=42)
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+vectorizer_tf = TfidfVectorizer(max_features=12000)
+# X_tf_train = vectorizer_tf.fit_transform(data_train)
+# X_tf_test = vectorizer_tf.transform(data_test)
+
+# This vocabulary can be extended with other words
 my_vocabulary = ["?"]
-vectorizer = CountVectorizer(vocabulary=my_vocabulary,
-                             token_pattern=r"(?u)\b\w\w+\b|\?")
-X = vectorizer.transform(df['content'].tolist()).todense()
-X_columns = vectorizer.get_feature_names()
+vectorizer_voc = CountVectorizer(vocabulary=my_vocabulary,
+                                 token_pattern=r"(?u)\b\w\w+\b|\?")
+# X_voc_train = vectorizer_voc.fit_transform(data_train)
+# X_voc_test = vectorizer_voc.transform(data_test)
 
-# Generate PSP and last sentence sentiment features
-print("\nStarting to make sentiment features, this will take some time...")
-tb = Blobber(analyzer=NaiveBayesAnalyzer())
+from sklearn.pipeline import FeatureUnion
 
-PSP_array = []
-last_sentence_sentiment_array = []
-for index, row in df.iterrows():
-    blob = tb(row["content"])
+X_combined_train = FeatureUnion(
+    [('TfidfVectorizer', vectorizer_tf), ('CountVectorizer', vectorizer_voc)])
+X_combined_train = X_combined_train.fit_transform(data_train).todense()
 
-    last_sentence_sentiment = 0
-    if blob.sentences[-1].sentiment.p_pos > 0.5:
-        last_sentence_sentiment = 1
-    else:
-        last_sentence_sentiment = 0
+X_combined_test = FeatureUnion(
+    [('TfidfVectorizer', vectorizer_tf), ('CountVectorizer', vectorizer_voc)])
+X_combined_test = X_combined_test.transform(data_test).todense()
 
-    positive_sentence_num = 0
-    for index, sentence in enumerate(blob.sentences):
-        if sentence.sentiment.p_pos > 0.5:
-            positive_sentence_num += 1
-    PSP = positive_sentence_num / len(blob.sentences)
-    PSP_array.append([PSP])
-    last_sentence_sentiment_array.append([last_sentence_sentiment])
-print("Finished making sentiment features.")
+# X_combined_train = X_tf_train
+# X_combined_test = X_tf_test
+
+from polarity_feature import make_polarity_features
+PSP_array_train, last_sentence_sentiment_array_train = make_polarity_features(data_train)
+PSP_array_test, last_sentence_sentiment_array_test = make_polarity_features(data_test)
 
 # Append these features to the original feature matrix
-X = np.hstack((X, np.asmatrix(PSP_array)))
-X = np.hstack((X, np.asmatrix(last_sentence_sentiment_array)))
+X_combined_train = np.hstack((X_combined_train, np.asmatrix(PSP_array_train)))
+X_combined_train = np.hstack(
+   (X_combined_train, np.asmatrix(last_sentence_sentiment_array_train)))
 
-# Add feature names as well
-X_columns = X_columns + ["PSP", "last_sentence_sentiment"]
+X_combined_test = np.hstack((X_combined_test, np.asmatrix(PSP_array_test)))
+X_combined_test = np.hstack(
+   (X_combined_test, np.asmatrix(last_sentence_sentiment_array_test)))
 
-print("\nFeature names: ")
-print(X_columns)
-
-y = df['class'].values
+y = data['class'].values
 print("\nClass values: ")
 print(str(y))
 
 print("\nFeature array: ")
-print(X)
+print(X_combined_train)
 
-m = svm.SVC(C=1.0, gamma='auto')
+from sklearn import svm
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
+clf = svm.SVC(gamma=0.95, C=1.5, decision_function_shape='ovo')
+clf.fit(X_combined_train, labels_train)
 
-m.fit(X_train, y_train)
-# Classes 0, 1 and 2
-print("\nDifferent classes: " + str(m.classes_))
-print("Score: " + str(m.score(X_test, y_test)))
+y_predicted = clf.predict(X_combined_test)
+
+from sklearn.metrics import accuracy_score
+
+print(accuracy_score(labels_test, y_predicted))
+
+from confusion_matrix import plot_confusion_matrix
+
+plot_confusion_matrix(labels_test, y_predicted, np.array(('0', '1', '2')))
+
