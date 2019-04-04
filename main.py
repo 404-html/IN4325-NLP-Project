@@ -9,6 +9,7 @@ from sklearn.pipeline import FeatureUnion
 
 from confusion_matrix import plot_confusion_matrix
 from data_processing import get_data
+from metric_labeling import metric_labeling
 from polarity_feature import make_polarity_features
 from util import Author
 
@@ -32,17 +33,11 @@ vectorizer_voc = CountVectorizer(vocabulary=my_vocabulary,
 # X_voc_train = vectorizer_voc.fit_transform(data_train)
 # X_voc_test = vectorizer_voc.transform(data_test)
 
-X_combined_train = FeatureUnion(
-    [('TfidfVectorizer', vectorizer_tf), ('CountVectorizer', vectorizer_voc)])
+X_combined_train = FeatureUnion([('TfidfVectorizer', vectorizer_tf), ('CountVectorizer', vectorizer_voc)])
 X_combined_train = X_combined_train.fit_transform(data_train).todense()
 
-X_combined_test = FeatureUnion(
-    [('TfidfVectorizer', vectorizer_tf), ('CountVectorizer', vectorizer_voc)])
+X_combined_test = FeatureUnion([('TfidfVectorizer', vectorizer_tf), ('CountVectorizer', vectorizer_voc)])
 X_combined_test = X_combined_test.transform(data_test).todense()
-
-# X_combined_train = X_tf_train
-# X_combined_test = X_tf_test
-
 
 PSP_array_train, last_sentence_sentiment_array_train = make_polarity_features(data_train)
 PSP_array_test, last_sentence_sentiment_array_test = make_polarity_features(data_test)
@@ -65,8 +60,9 @@ print(X_combined_train)
 
 clf = svm.SVC(gamma=0.95, C=1.5, decision_function_shape='ovo')
 clf.fit(X_combined_train, labels_train)
-
 y_predicted = clf.predict(X_combined_test)
+
+metric_labeling(PSP_array_train, PSP_array_test, y_predicted)
 
 print(accuracy_score(labels_test, y_predicted))
 

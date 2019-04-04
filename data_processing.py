@@ -63,7 +63,7 @@ def create_csv_for(author, delimiter="|"):
 
 
 def get_data(author):
-    if not(os.path.isfile(data_dir + "data.csv")):
+    if not os.path.isfile(data_dir + "data.csv"):
         create_csv_for(author)
     data = pd.read_csv(data_dir + "data.csv", sep="|", header=0)
     sentences = clean_sentences(data)
