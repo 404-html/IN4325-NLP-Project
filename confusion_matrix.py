@@ -2,10 +2,11 @@
 ###################################
 ###################################
 
-from sklearn.utils.multiclass import unique_labels
-from sklearn.metrics import confusion_matrix
-from matplotlib import pyplot as plt
 import numpy as np
+from matplotlib import pyplot as plt
+from sklearn.metrics import confusion_matrix
+from sklearn.utils.multiclass import unique_labels
+
 
 def plot_confusion_matrix(y_true, y_pred, classes,
                           normalize=False,

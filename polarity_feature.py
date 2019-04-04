@@ -5,6 +5,7 @@
 from textblob import Blobber
 from textblob.sentiments import NaiveBayesAnalyzer
 
+
 # Generate PSP and last sentence sentiment features
 # Assumes data as an array of sentences
 def make_polarity_features(data):
