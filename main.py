@@ -1,15 +1,6 @@
-import csv
-import io
-import os
-import re
-from pathlib import Path
+# Main file that is used for performing experiments.
 
 import numpy as np
-import pandas as pd
-from bs4 import BeautifulSoup
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize
 from sklearn import svm
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.metrics import accuracy_score
@@ -17,66 +8,13 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import FeatureUnion
 
 from confusion_matrix import plot_confusion_matrix
+from data_processing import get_data
 from polarity_feature import make_polarity_features
+from util import Author
 
-author_name = "Dennis+Schwartz"
+# Load preprocessed data.
+data, sentences = get_data(Author.SCHWARTZ)
 
-
-def create_csv_for(author, delimiter="|"):
-    base_path = Path(__file__).parent
-    target_dir = (base_path / "data/scaledata/" / author).resolve()
-    column_names = ["id", "class", "content"]
-    with io.open("data.csv", 'w', newline='') as fh_csv, \
-            open(os.path.join(target_dir, "id." + author)) as fh1, \
-            open(os.path.join(target_dir, "label.3class." + author)) as fh2, \
-            open(os.path.join(target_dir, "subj." + author)) as fh3:
-
-        writer = csv.writer(fh_csv, delimiter=delimiter)
-        writer.writerow(column_names)
-
-        while True:
-            out = []
-            for fh in [fh1, fh2, fh3]:
-                out.append(fh.readline().strip('\n'))
-
-            if all(out):
-                writer.writerow(out)
-            else:
-                break
-
-
-# Uncomment to create data.csv for author each time
-# create_csv_for(author_name, "|")
-
-# Create dataframe from data.csv
-data = pd.read_csv("data.csv", sep="|", header=0)
-# print(data.head())
-
-lemmatizer = WordNetLemmatizer()
-
-
-def clean_sentences(data):
-    reviews = []
-
-    for sent in data['content']:
-        # remove html content
-        review_text = BeautifulSoup(sent, "lxml").get_text()
-
-        # remove non-alphabetic characters
-        review_text = re.sub("[^a-zA-Z?]", " ", review_text)
-
-        # tokenize the sentences
-        words = word_tokenize(review_text.lower())
-
-        # lemmatize each word to its lemma
-        lemma_words = [lemmatizer.lemmatize(i) for i in words if i not in set(stopwords.words('english'))]
-        lemma_string = " ".join(lemma_words)
-        reviews.append(lemma_string)
-
-    return reviews
-
-
-sentences = clean_sentences(data)
 y = data.iloc[:, 1].values
 # Split training data
 data_train, data_test, labels_train, labels_test = train_test_split(sentences, y,
