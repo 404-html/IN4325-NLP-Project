@@ -1,6 +1,8 @@
 # Main file that is used for performing experiments.
 
+import matplotlib.pyplot as plt
 import numpy as np
+from mlxtend.plotting import plot_decision_regions
 from sklearn import svm
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.metrics import accuracy_score
@@ -17,6 +19,7 @@ from util import Author
 data, sentences = get_data(Author.SCHWARTZ)
 
 y = data.iloc[:, 1].values
+possible_labels = np.unique(y)
 # Split training data
 data_train, data_test, labels_train, labels_test = train_test_split(sentences, y,
                                                                     test_size=0.20,
@@ -58,12 +61,26 @@ print(str(y))
 print("\nFeature array: ")
 print(X_combined_train)
 
+# SVC OVO
 clf = svm.SVC(gamma=0.95, C=1.5, decision_function_shape='ovo')
 clf.fit(X_combined_train, labels_train)
 y_predicted = clf.predict(X_combined_test)
-
-metric_labeling(PSP_array_train, PSP_array_test, y_predicted)
-
 print(accuracy_score(labels_test, y_predicted))
-
 plot_confusion_matrix(labels_test, y_predicted, np.array(('0', '1', '2')))
+plt.show()
+
+# Metric labeling
+clf = svm.SVC(C=0.5, kernel='linear', decision_function_shape='ovr')
+clf.fit(PSP_array_train, labels_train)
+preferences = clf.decision_function(PSP_array_train)
+
+plot_decision_regions(X=np.array(PSP_array_train),
+                      y=np.array(labels_train),
+                      clf=clf,
+                      legend=2)
+plt.show()
+
+y_predicted = metric_labeling(PSP_array_train, labels_train, PSP_array_test, preferences, possible_labels)
+print(accuracy_score(labels_test, y_predicted))
+plot_confusion_matrix(labels_test, y_predicted, np.array(('0', '1', '2')))
+plt.show()
