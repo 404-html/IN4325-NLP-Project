@@ -11,7 +11,7 @@ from sklearn.pipeline import FeatureUnion
 
 from confusion_matrix import plot_confusion_matrix
 from data_processing import get_data
-from metric_labeling import metric_labeling
+from metric_labeling import metric_labeling, train_nnc
 from polarity_feature import make_polarity_features
 from util import Author
 
@@ -80,7 +80,8 @@ plot_decision_regions(X=np.array(PSP_array_train),
                       legend=2)
 plt.show()
 
-y_predicted = metric_labeling(PSP_array_train, labels_train, PSP_array_test, preferences, possible_labels)
+nnc = train_nnc(PSP_array_train)
+y_predicted = metric_labeling(PSP_array_train, labels_train, PSP_array_test, preferences, possible_labels, nnc)
 print(accuracy_score(labels_test, y_predicted))
 plot_confusion_matrix(labels_test, y_predicted, np.array(('0', '1', '2')))
 plt.show()

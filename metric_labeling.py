@@ -22,21 +22,19 @@ def sim(x, y):
 
 
 # Trains a nnc classifier.
-def train_nnc(training_data, k):
+def train_nnc(training_data, k=5):
     nnc = NearestNeighbors(k, metric='cosine')
     nnc.fit(training_data)
     return nnc
 
 
 # Performs the metric labeling.
-def metric_labeling(training_set, labels_train, test_set, preferences, possible_labels, alpha=0.2):
+def metric_labeling(training_set, labels_train, test_set, preferences, possible_labels, nnc, alpha=0.2):
     labels = []
     for i, item in enumerate(test_set):
         costs = []
         for l in possible_labels:
             neighbor_cost_values = []
-            nodes = training_set.copy()
-            nnc = train_nnc(nodes, 5)
             neighbors = nnc.kneighbors([item], 5, return_distance=False)
             neighbors = neighbors.tolist()[0]
             for n in neighbors:
@@ -44,6 +42,6 @@ def metric_labeling(training_set, labels_train, test_set, preferences, possible_
                 neighbor_label = labels_train[n]
                 neighbor_cost_values.append(f(d(l, neighbor_label)) * sim(item, neighbor_item))
             correct = sum(neighbor_cost_values)
-            costs.append(-abs(preferences[i][l]) + alpha * correct)
+            costs.append(-preferences[i][l] + alpha * correct)
         labels.append(possible_labels[costs.index(min(costs))])
     return labels
