@@ -42,17 +42,21 @@ X_combined_train = X_combined_train.fit_transform(data_train).todense()
 X_combined_test = FeatureUnion([('TfidfVectorizer', vectorizer_tf), ('CountVectorizer', vectorizer_voc)])
 X_combined_test = X_combined_test.transform(data_test).todense()
 
-PSP_array_train, last_sentence_sentiment_array_train = make_polarity_features(data_train)
-PSP_array_test, last_sentence_sentiment_array_test = make_polarity_features(data_test)
+PSP_array_train, last_sentence_sentiment_array_train, first_sentence_sentiment_array_train = make_polarity_features(data_train)
+PSP_array_test, last_sentence_sentiment_array_test, first_sentence_sentiment_array_test = make_polarity_features(data_test)
 
 # Append these features to the original feature matrix
 X_combined_train = np.hstack((X_combined_train, np.asmatrix(PSP_array_train)))
 X_combined_train = np.hstack(
     (X_combined_train, np.asmatrix(last_sentence_sentiment_array_train)))
+#X_combined_train = np.hstack(
+#    (X_combined_train, np.asmatrix(first_sentence_sentiment_array_train)))
 
 X_combined_test = np.hstack((X_combined_test, np.asmatrix(PSP_array_test)))
 X_combined_test = np.hstack(
     (X_combined_test, np.asmatrix(last_sentence_sentiment_array_test)))
+#X_combined_test = np.hstack(
+#    (X_combined_test, np.asmatrix(first_sentence_sentiment_array_test)))
 
 y = data['class'].values
 print("\nClass values: ")
@@ -78,6 +82,7 @@ plot_decision_regions(X=np.array(PSP_array_train),
                       y=np.array(labels_train),
                       clf=clf,
                       legend=2)
+plt.ylabel('Positive sentence percentence [%]')
 plt.show()
 
 nnc = train_nnc(PSP_array_train)

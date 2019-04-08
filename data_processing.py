@@ -24,7 +24,7 @@ def clean_sentences(data):
         review_text = BeautifulSoup(sent, "lxml").get_text()
 
         # remove non-alphabetic characters
-        review_text = re.sub("[^a-zA-Z?]", " ", review_text)
+        review_text = re.sub("[^a-zA-Z?.]", " ", review_text)
 
         # tokenize the sentences
         words = word_tokenize(review_text.lower())
