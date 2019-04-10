@@ -29,13 +29,13 @@ def train_nnc(training_data, k=5):
 
 
 # Performs the metric labeling.
-def metric_labeling(training_set, labels_train, test_set, preferences, possible_labels, nnc, alpha=0.2):
+def metric_labeling(training_set, labels_train, test_set, preferences, possible_labels, nnc, alpha=0.2, k=5):
     labels = []
     for i, item in enumerate(test_set):
         costs = []
         for l in possible_labels:
             neighbor_cost_values = []
-            neighbors = nnc.kneighbors([item], 5, return_distance=False)
+            neighbors = nnc.kneighbors([item], k, return_distance=False)
             neighbors = neighbors.tolist()[0]
             for n in neighbors:
                 neighbor_item = training_set[n]
@@ -45,3 +45,26 @@ def metric_labeling(training_set, labels_train, test_set, preferences, possible_
             costs.append(-preferences[i][l] + alpha * correct)
         labels.append(possible_labels[costs.index(min(costs))])
     return labels
+
+
+# Performs the metric labeling.
+def metric_labeling_opt(args, training_set, labels_train, test_set, preferences, possible_labels):
+    alpha, k = args
+    alpha = float(alpha)
+    k = int(k)
+    cost = 0
+    for i, item in enumerate(test_set):
+        costs = []
+        for l in possible_labels:
+            neighbor_cost_values = []
+            nnc = train_nnc(training_set, k)
+            neighbors = nnc.kneighbors([item], k, return_distance=False)
+            neighbors = neighbors.tolist()[0]
+            for n in neighbors:
+                neighbor_item = training_set[n]
+                neighbor_label = labels_train[n]
+                neighbor_cost_values.append(f(d(l, neighbor_label)) * sim(item, neighbor_item))
+            correct = sum(neighbor_cost_values)
+            costs.append(-preferences[i][l] + alpha * correct)
+        cost += costs.index(min(costs))
+    return cost
