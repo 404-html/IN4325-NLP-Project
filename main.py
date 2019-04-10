@@ -1,20 +1,24 @@
 # Main file that is used for performing experiments.
+import re
+
 import matplotlib.pyplot as plt
 import numpy as np
 from mlxtend.plotting import plot_decision_regions
 from sklearn import svm
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import FeatureUnion
 
 from confusion_matrix import plot_confusion_matrix
-from data_processing import get_data
+from data_processing import get_data, clean_sentences
 from metric_labeling import metric_labeling, train_nnc
-from polarity_feature import make_polarity_features
-from util import Author
+from polarity_feature import get_polarity_features
+from rest_features import get_features
 from sampling import undersample, oversample, split_validation
 from tune_params import tune_params
+from util import Author
 
 # Load preprocessed data.
 data, sentences = get_data(Author.SCHWARTZ)
@@ -120,4 +124,4 @@ clf_features.fit(X_features_over, labels_over)
 y_features_predicted = clf_features.predict(X_features_test_)
 print(accuracy_score(labels_features_test, y_features_predicted))
 print(f1_score())
-plot_confusion_matrix(labels_features_test_, y_features_predicted, np.array(('0', '1', '2')))
+plot_confusion_matrix(labels_features_test, y_features_predicted, np.array(('0', '1', '2')))
