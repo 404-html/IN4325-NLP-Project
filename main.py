@@ -49,13 +49,13 @@ PSP_array_train, last_sentence_sentiment_array_train, first_sentence_sentiment_a
 PSP_array_test, last_sentence_sentiment_array_test, first_sentence_sentiment_array_test = make_polarity_features(data_test)
 
 # Append these features to the original feature matrix
-X_combined_train = np.hstack((X_combined_train, np.asmatrix(PSP_array_train)))
+#X_combined_train = np.hstack((X_combined_train, np.asmatrix(PSP_array_train)))
 X_combined_train = np.hstack(
     (X_combined_train, np.asmatrix(last_sentence_sentiment_array_train)))
 X_combined_train = np.hstack(
     (X_combined_train, np.asmatrix(first_sentence_sentiment_array_train)))
 
-X_combined_test = np.hstack((X_combined_test, np.asmatrix(PSP_array_test)))
+#X_combined_test = np.hstack((X_combined_test, np.asmatrix(PSP_array_test)))
 X_combined_test = np.hstack(
     (X_combined_test, np.asmatrix(last_sentence_sentiment_array_test)))
 X_combined_test = np.hstack(
@@ -72,15 +72,38 @@ X_combined_train = csr_matrix(X_combined_train)
 X_combined_test = csr_matrix(X_combined_test)
 
 # hyperparameter selection rbf ovo
-param_grid = {'gamma': [0.1, 0.18, 0.2, 0.25], 'C': np.linspace(3.8, 4.2, 4)}
+param_grid = {'gamma': [0.1, 0.18, 0.2, 0.25], 'C': np.linspace(3.8, 4.2, 5)}
 model = svm.SVC()
-clf = model_selection.GridSearchCV(model, param_grid, cv=10, return_train_score=True)
-clf.fit(X_combined_train, labels_train)
-print (clf.best_params_)
-print (clf.best_score_)
-search_results = pd.DataFrame.from_dict(clf.cv_results_)
-print(search_results.loc[:, ['param_gamma', 'param_C', 'mean_test_score']])
+clf_rbf_ovo = model_selection.GridSearchCV(model, param_grid, cv=10, return_train_score=True)
+clf_rbf_ovo.fit(X_combined_train, labels_train)
+print (clf_rbf_ovo.best_params_)
+print (clf_rbf_ovo.best_score_)
+search_results_rbf_ovo = pd.DataFrame.from_dict(clf_rbf_ovo.cv_results_)
+print(search_results_rbf_ovo.loc[:, ['param_gamma', 'param_C', 'mean_test_score']])
 #Best parameters {'C': 3.93, 'gamma': 0.18}
+
+# hyperparameter selection linear ovo
+param_grid = {'C': np.linspace(1, 5, 5)}
+model = svm.SVC(kernel='linear')
+clf_linear_ovo = model_selection.GridSearchCV(model, param_grid, cv=10, return_train_score=True)
+clf_linear_ovo.fit(X_combined_train, labels_train)
+print (clf_linear_ovo.best_params_)
+print (clf_linear_ovo.best_score_)
+search_results_linear_ovo = pd.DataFrame.from_dict(clf_linear_ovo.cv_results_)
+print(search_results_linear_ovo.loc[:, ['param_C', 'mean_test_score']])
+#Best parameters {'C': 3.93, 'gamma': 0.18}
+
+# hyperparameter selection linear ova
+param_grid = {'C': np.linspace(0.6, 3, 10)}
+model = svm.LinearSVC()
+clf_linear_ova = model_selection.GridSearchCV(model, param_grid, cv=10, return_train_score=True)
+clf_linear_ova.fit(X_combined_train, labels_train)
+print (clf_linear_ova.best_params_)
+print (clf_linear_ova.best_score_)
+search_results_linear_ova = pd.DataFrame.from_dict(clf_linear_ova.cv_results_)
+print(search_results_linear_ova.loc[:, ['param_C', 'mean_test_score']])
+#Best parameters {'C': 3.93, 'gamma': 0.18}
+
 
 # SVC OVO
 #clf = svm.SVC(gamma=0.2, C=3.2, decision_function_shape='ovo')
