@@ -50,8 +50,8 @@ def metric_labeling(training_set, labels_train, test_set, preferences, possible_
 # Performs the metric labeling.
 def metric_labeling_opt(args, training_set, labels_train, test_set, preferences, possible_labels):
     alpha, k = args
-    print(args)
-    print(k)
+    alpha = float(alpha)
+    k = int(k)
     cost = 0
     for i, item in enumerate(test_set):
         costs = []
