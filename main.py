@@ -46,18 +46,18 @@ X_combined_test = X_combined_test.transform(data_test).todense()
 PSP_array_train, last_sentence_sentiment_array_train, first_sentence_sentiment_array_train = make_polarity_features(data_train)
 PSP_array_test, last_sentence_sentiment_array_test, first_sentence_sentiment_array_test = make_polarity_features(data_test)
 
-# Append these features to the original feature matrix
-X_combined_train = np.hstack((X_combined_train, np.asmatrix(PSP_array_train)))
-X_combined_train = np.hstack(
-    (X_combined_train, np.asmatrix(last_sentence_sentiment_array_train)))
-#X_combined_train = np.hstack(
-#    (X_combined_train, np.asmatrix(first_sentence_sentiment_array_train)))
-
-X_combined_test = np.hstack((X_combined_test, np.asmatrix(PSP_array_test)))
-X_combined_test = np.hstack(
-    (X_combined_test, np.asmatrix(last_sentence_sentiment_array_test)))
-#X_combined_test = np.hstack(
-#    (X_combined_test, np.asmatrix(first_sentence_sentiment_array_test)))
+# # Append these features to the original feature matrix
+# X_combined_train = np.hstack((X_combined_train, np.asmatrix(PSP_array_train)))
+# X_combined_train = np.hstack(
+#     (X_combined_train, np.asmatrix(last_sentence_sentiment_array_train)))
+# #X_combined_train = np.hstack(
+# #    (X_combined_train, np.asmatrix(first_sentence_sentiment_array_train)))
+#
+# X_combined_test = np.hstack((X_combined_test, np.asmatrix(PSP_array_test)))
+# X_combined_test = np.hstack(
+#     (X_combined_test, np.asmatrix(last_sentence_sentiment_array_test)))
+# #X_combined_test = np.hstack(
+# #    (X_combined_test, np.asmatrix(first_sentence_sentiment_array_test)))
 
 y = data['class'].values
 print("\nClass values: ")
@@ -84,15 +84,17 @@ plot_confusion_matrix(labels_test, y_predicted, np.array(('0', '1', '2')))
 plt.show()
 
 # Metric labeling
-clf = svm.SVC(C=0.5, kernel='linear', decision_function_shape='ovr')
-clf.fit(PSP_array_train, labels_train)
-preferences = clf.decision_function(PSP_array_train)
+PSP_array_train = [[x[0], 1-x[0]] for x in PSP_array_train]
+PSP_array_test = [[x[0], 1-x[0]] for x in PSP_array_test]
 
-plot_decision_regions(X=np.array(PSP_array_train),
-                      y=np.array(labels_train),
-                      clf=clf,
-                      legend=2)
-plt.ylabel('Positive sentence percentence [%]')
+clf = svm.SVC(C=0.5, kernel='linear', decision_function_shape='ovr')
+clf.fit(X_combined_train, labels_train)
+preferences = clf.decision_function(X_combined_train)
+
+nnc = train_nnc(PSP_array_train, k=2)
+y_predicted = metric_labeling(PSP_array_train, labels_train, PSP_array_test, preferences, possible_labels, nnc, alpha=100)
+print(accuracy_score(labels_test, y_predicted))
+plot_confusion_matrix(labels_test, y_predicted, np.array(('0', '1', '2')))
 plt.show()
 
 nnc = train_nnc(PSP_array_train)
