@@ -21,7 +21,24 @@ def undersample(X, y):
     return (np.matrix(X_under), np.array(y_under))
 
 def oversample(X, y):
-    return True
+    if not type(X) is np.array:
+        X = np.array(X)
+    classes = len(np.unique(y))
+    # Assumes the class-labeles are integers from 0 to C-1, the total number of classes
+    original_classes = [np.sum(y==i) for i in range(classes)]
+    majority = np.max(original_classes)
+
+    X_over = np.copy(X)
+    y_over = np.copy(y)
+
+    for i in range(classes):
+        for x in np.random.choice(np.where(y==i)[0], majority - original_classes[i]):
+            X_over = np.vstack([X_over, X[x,:]])
+            y_over = np.append(y_over, y[x])
+    return(np.matrix(X_over), np.array(y_over))
+
+
+
 
 def split_validation(X, y):
     half = X.shape[0]/2

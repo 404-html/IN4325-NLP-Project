@@ -75,8 +75,8 @@ X_combined_train_under, labels_train_under = undersample(X_combined_train, label
 X_combined_val, labels_val, X_combined_test_, labels_test_ = split_validation(X_combined_test, labels_test)
 
 # SVC OVO
-clf = svm.SVC(gamma=0.95, C=1.5, decision_function_shape='ovo')
-clf.fit(X_combined_train, labels_train)
+clf = svm.SVC(gamma='auto', C=1.5, decision_function_shape='ovo')
+clf.fit(X_combined_train_under, labels_train_under)
 y_predicted = clf.predict(X_combined_test)
 print(accuracy_score(labels_test, y_predicted))
 plot_confusion_matrix(labels_test, y_predicted, np.array(('0', '1', '2')))
@@ -103,16 +103,21 @@ plot_confusion_matrix(labels_test, y_predicted, np.array(('0', '1', '2')))
 
 
 
-X_features_under, labels_under = undersample(X_features_train, labels_train)
+#X_features_under, labels_under = undersample(X_features_train, labels_train)
+X_features_over, labels_over = oversample(X_features_train, labels_train)
 #Originally: 284 + 339 + 198 = 821
+#Undersampling: 198 + 198 + 198 = 594
+#Oversampling: 339 + 339 + 339 = 1017
 
-X_features_val, labels_features_val, X_features_test, labels_features_test = split_validation(X_features_test, labels_test)
-best_params = tune_params(X_features_under, labels_under, X_features_val, labels_features_val, verbose=True)
+X_features_val, labels_features_val, X_features_test_, labels_features_test = split_validation(X_features_test, labels_test)
+best_params = tune_params(X_features_over, labels_over, X_features_val, labels_features_val, verbose=True)
 
+plt.close('all')
+print(best_params)
 
-clf_features = svm.SVC(??????????)
-clf_features.fit(X_features_under, labels_under)
-y_features_predicted = clf_features.predict(X_features_test)
+clf_features = svm.SVC(kernel='poly', degree=2, gamma=0.1, C=0.1, decision_function_shape='ovo')
+clf_features.fit(X_features_over, labels_over)
+y_features_predicted = clf_features.predict(X_features_test_)
 print(accuracy_score(labels_features_test, y_features_predicted))
 print(f1_score())
-plot_confusion_matrix(labels_features_test, y_features_predicted, np.array(('0', '1', '2')))
+plot_confusion_matrix(labels_features_test_, y_features_predicted, np.array(('0', '1', '2')))

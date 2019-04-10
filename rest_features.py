@@ -1,4 +1,4 @@
-
+import numpy as np
 def get_features(data):
     num_reviews = len(data)
 
@@ -34,11 +34,11 @@ def get_features(data):
                         parenthesis += 1
 
         sentences = float(len(review))
-        num_words_array[i] = num_words
-        wps_array[i] = num_words / sentences
+        num_words_array[i] = np.log(num_words)
+        wps_array[i] = np.log(num_words / sentences)
         num_question_array[i] = question / sentences
         num_exclamation_array[i] = exclamation / sentences
-        num_quote_array[i] = quote / 2*sentences
-        num_parenthesis_array[i] = parenthesis / 2*sentences
+        num_quote_array[i] = quote / (2*sentences)
+        num_parenthesis_array[i] = parenthesis / (2*sentences)
 
     return np.vstack((num_words_array, wps_array, num_question_array, num_exclamation_array, num_quote_array, num_parenthesis_array)).T
