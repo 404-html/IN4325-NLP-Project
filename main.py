@@ -15,6 +15,7 @@ from data_processing import get_data
 from metric_labeling import metric_labeling, train_nnc
 from polarity_feature import make_polarity_features
 from util import Author
+from scipy.sparse import csr_matrix
 
 # Load preprocessed data.
 data, sentences = get_data(Author.SCHWARTZ)
@@ -66,17 +67,20 @@ print(str(y))
 print("\nFeature array: ")
 print(X_combined_train)
 
+X_combined_train = csr_matrix(X_combined_train)
+X_combined_test = csr_matrix(X_combined_test)
+
 # hyperparameter selection
 param_grid = {'gamma': np.linspace(0.2, 0.6, 4), 'C': np.linspace(2.8, 3.2, 4)}
 model = svm.SVC()
-clf = model_selection.GridSearchCV(model, param_grid, cv=10)
+clf = model_selection.GridSearchCV(model, param_grid, cv=10, return_train_score=True)
 clf.fit(X_combined_train, labels_train)
 print (clf.best_params_)
 print (clf.best_score_)
 #Best parameters {'C': 2.8, 'gamma': 0.33333333333333337}
 
 # SVC OVO
-clf = svm.SVC(gamma=0.334, C=2.8, decision_function_shape='ovo')
+clf = svm.SVC(gamma=0.2, C=3.2, decision_function_shape='ovo')
 clf.fit(X_combined_train, labels_train)
 y_predicted = clf.predict(X_combined_test)
 print(accuracy_score(labels_test, y_predicted))
