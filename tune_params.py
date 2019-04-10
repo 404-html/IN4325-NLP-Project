@@ -1,5 +1,9 @@
+import numpy as np
 from sklearn import svm
 from sklearn.metrics import f1_score
+
+from confusion_matrix import plot_confusion_matrix
+
 
 def tune_params(X_train, y_train, X_val, y_val, verbose):
     best_f1 = 0

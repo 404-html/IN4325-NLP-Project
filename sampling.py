@@ -41,7 +41,7 @@ def oversample(X, y):
 
 
 def split_validation(X, y):
-    half = X.shape[0]/2
+    half = int(round(X.shape[0]/2))
     X_val = X[half:,:]
     y_val = y[half:]
     X_test = X[:half,:]

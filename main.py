@@ -68,8 +68,8 @@ X_combined_test = X_combined_test.transform(data_test).todense()
 X_features_train = get_polarity_features([clean_sentences(s) for s in full_sentences_train])
 X_features_test = get_polarity_features([clean_sentences(s) for s in full_sentences_test])
 
-X_features_train = np.hstack(X_features_train, get_features(full_sentences_train))
-X_features_test = np.hstack(X_features_test, get_features(full_sentences_test))
+X_features_train = np.hstack((X_features_train, get_features(full_sentences_train)))
+X_features_test = np.hstack((X_features_test, get_features(full_sentences_test)))
 
 y = data['class'].values
 print("\nClass values: ")
