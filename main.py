@@ -115,11 +115,9 @@ print(search_results_linear_ova.loc[:, ['param_C', 'mean_test_score']])
 #Best parameters {'C': 3.93, 'gamma': 0.18}
 
 
-# SVC OVO
-clf = svm.SVC(gamma=0.2, C=3.2, decision_function_shape='ovo')
-clf.fit(X_combined_train, labels_train)
-X_combined_train_under, labels_train_under = undersample(X_combined_train, labels_train)
-X_combined_val, labels_val, X_combined_test_, labels_test_ = split_validation(X_combined_test, labels_test)
+X_combined_train_under, labels_train_under = undersample(X_features_train, labels_train)
+X_combined_test = np.asmatrix(X_features_test)
+X_combined_val, labels_val, X_combined_test_, labels_test_ = split_validation(X_features_test, labels_test)
 
 # SVC OVO
 clf = svm.SVC(gamma='auto', C=1.5, decision_function_shape='ovo')
