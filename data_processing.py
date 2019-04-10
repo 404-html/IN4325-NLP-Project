@@ -19,15 +19,16 @@ def clean_sentences(data):
     lemmatizer = WordNetLemmatizer()
     reviews = []
 
-    for sent in data['content']:
+    # for sent in data['content']:
+    for sent in data:
         # remove html content
         review_text = BeautifulSoup(sent, "lxml").get_text()
 
         # remove non-alphabetic characters
-        review_text = re.sub("[^a-zA-Z?.]", " ", review_text)
+        review_text = re.sub("[^a-z ]", "", review_text)
 
         # tokenize the sentences
-        words = word_tokenize(review_text.lower())
+        words = word_tokenize(review_text) # Reviewes are already in lower-case
 
         # lemmatize each word to its lemma
         lemma_words = [lemmatizer.lemmatize(i) for i in words if i not in set(stopwords.words('english'))]
@@ -66,5 +67,6 @@ def get_data(author):
     if not os.path.isfile(data_dir + "data.csv"):
         create_csv_for(author)
     data = pd.read_csv(data_dir + "data.csv", sep="|", header=0)
-    sentences = clean_sentences(data)
+    # sentences = clean_sentences(data)
+    sentences = clean_sentences(data['content'])
     return data, sentences
