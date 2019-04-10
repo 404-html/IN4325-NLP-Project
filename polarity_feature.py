@@ -2,10 +2,12 @@
 ###################################
 ###################################
 
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
+import numpy as np
 from nltk import pos_tag
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from textblob import Blobber
 from textblob.sentiments import NaiveBayesAnalyzer
+
 
 # Calculate the "neutrality" of a text.
 # Both a small difference between the number of positive and negative words and
