@@ -106,8 +106,8 @@ print(search_results_linear_ova.loc[:, ['param_C', 'mean_test_score']])
 
 
 # SVC OVO
-#clf = svm.SVC(gamma=0.2, C=3.2, decision_function_shape='ovo')
-#clf.fit(X_combined_train, labels_train)
+clf = svm.SVC(gamma=0.2, C=3.2, decision_function_shape='ovo')
+clf.fit(X_combined_train, labels_train)
 y_predicted = clf.predict(X_combined_test)
 print(accuracy_score(labels_test, y_predicted))
 plot_confusion_matrix(labels_test, y_predicted, np.array(('0', '1', '2')), normalize=True)
