@@ -8,6 +8,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import FeatureUnion
+from sklearn import model_selection
 
 from confusion_matrix import plot_confusion_matrix
 from data_processing import get_data
@@ -65,8 +66,17 @@ print(str(y))
 print("\nFeature array: ")
 print(X_combined_train)
 
+# hyperparameter selection
+param_grid = {'gamma': np.linspace(0.2, 0.6, 4), 'C': np.linspace(2.8, 3.2, 4)}
+model = svm.SVC()
+clf = model_selection.GridSearchCV(model, param_grid, cv=10)
+clf.fit(X_combined_train, labels_train)
+print (clf.best_params_)
+print (clf.best_score_)
+#Best parameters {'C': 2.8, 'gamma': 0.33333333333333337}
+
 # SVC OVO
-clf = svm.SVC(gamma=0.95, C=1.5, decision_function_shape='ovo')
+clf = svm.SVC(gamma=0.334, C=2.8, decision_function_shape='ovo')
 clf.fit(X_combined_train, labels_train)
 y_predicted = clf.predict(X_combined_test)
 print(accuracy_score(labels_test, y_predicted))
@@ -90,3 +100,4 @@ y_predicted = metric_labeling(PSP_array_train, labels_train, PSP_array_test, pre
 print(accuracy_score(labels_test, y_predicted))
 plot_confusion_matrix(labels_test, y_predicted, np.array(('0', '1', '2')))
 plt.show()
+
