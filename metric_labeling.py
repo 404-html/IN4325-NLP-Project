@@ -66,5 +66,5 @@ def metric_labeling_opt(args, training_set, labels_train, test_set, preferences,
                 neighbor_cost_values.append(f(d(l, neighbor_label)) * sim(item, neighbor_item))
             correct = sum(neighbor_cost_values)
             costs.append(-preferences[i][l] + alpha * correct)
-        costs += costs.index(min(costs))
+        cost += costs.index(min(costs))
     return cost
